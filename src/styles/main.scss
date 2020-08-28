@@ -2,3 +2,9 @@
 body {
     background-color: #001529;
 }
+.departmentButton {
+    button + button{
+       margin-left: 10px;
+    }
+   
+  }

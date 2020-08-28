@@ -7,12 +7,13 @@ import {BrowserRouter,Route,Switch, Redirect} from 'react-router-dom';
 import PrivateRouter from './views/components/privateRouter'
 
 function App() {
+  
   return (
     <BrowserRouter>
     <Switch>
       <Route path="/login" component={Login}></Route>
       <PrivateRouter path="/index" component={Index}></PrivateRouter>
-      {/* <Redirect to="/login"></Redirect> */}
+      <Redirect to="/login"></Redirect>
     </Switch>
     </BrowserRouter>
   );

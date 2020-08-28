@@ -6,7 +6,7 @@ import { UserOutlined, UnlockOutlined  } from '@ant-design/icons';
 // 验证
 import { validate_password } from "../../utils/validate";
 
-import {setToken} from './../../utils/session'
+import {setToken,setUsername} from './../../utils/session'
 
 import { Login } from "../../api/account";
 
@@ -44,7 +44,7 @@ import CryptoJs from 'crypto-js';
             const data = response.data.data
             // 存储token
             setToken(data.token);
-            // setUsername(data.username);
+             setUsername(data.username);
             // 路由跳转
             console.log('登录成功');
            this.props.history.push('/index');

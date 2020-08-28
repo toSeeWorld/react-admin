@@ -8,6 +8,7 @@ import "./layout.scss";
 // antd
 import { Layout } from 'antd';
 import Aside from "./../components/aside";
+
 const { Sider, Header, Content }  = Layout;
 class Index extends Component {
     constructor(props){

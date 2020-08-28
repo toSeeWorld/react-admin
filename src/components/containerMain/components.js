@@ -9,7 +9,6 @@ files.keys().map((item)=>{
     jsonObj.path = `/index${itemSpilt[1]}`
     jsonObj.component =  files(item).default ;
     components.push(jsonObj);
-    
 
 })
 export default components
