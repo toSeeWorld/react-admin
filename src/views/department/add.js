@@ -1,12 +1,13 @@
 import React, { Component } from 'react';
 import { Form, Button, Input, InputNumber, Radio, message } from 'antd';
 import TextArea from 'antd/lib/input/TextArea';
-import DepartmentAdd from "../../api/department/add"
+import { AddList,SetList } from "../../api/department/add"
 export default class Add extends Component {
     constructor(props) {
         super(props)
         this.state = {
             loading:false,
+            location:{}
         }
     }
     onSubmit = (value)=>{
@@ -15,7 +16,16 @@ export default class Add extends Component {
                 loading:true
             }
         )
-        DepartmentAdd(value).then((rep)=>{
+       if(!this.state.location)  {
+           this.addList(value)
+    } else {
+        this.setList(value);
+    }
+       
+
+    }
+    addList = (value)=>{
+        AddList(value).then((rep)=>{
             this.setState({
                 loading:false
             })
@@ -29,11 +39,42 @@ export default class Add extends Component {
                 }
             )
         })
-
+    }
+    setList = (value)=>{
+        value.id = this.state.location.id
+        SetList(value).then((rep)=>{
+            this.setState({
+                loading:false
+            })
+            const data = rep.data;
+            this.addform.resetFields();
+            message.success("提交成功！");
+        }).catch((reason)=>{
+            this.setState(
+                {
+                    loading:false
+                }
+            )
+        })
+    }
+    componentDidMount(){
+        if(!this.props.location.state) {
+            return false;
+        }
+        const obj = this.props.location.state.obj;
+        console.log(this.props.location)
+        this.setState({location:obj})
+        this.addform.setFieldsValue(
+            {
+                name:obj.name,
+                number:obj.number,
+                status:obj.status==="1"?true:false
+            }
+        )
     }
     render() {
         return (
-            <Form ref= {form=>this.addform = form} labelCol={{span:2}} initialValues={{status:false,number:0}} onFinish={this.onSubmit}>
+            <Form ref= {form=>this.addform = form} labelCol={{span:2}} initialValues={{status:true,number:10}} onFinish={this.onSubmit}>
                 <Form.Item name="name" required={true} label="部门名称">
                     <Input />
                 </Form.Item>

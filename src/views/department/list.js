@@ -1,7 +1,8 @@
 import React, { Component, Fragment } from 'react';
-import { Button, Form, Input, Table, Switch, message } from 'antd';
+import { Button, Form, Input, Table, Switch, message ,Modal,Pagination} from 'antd';
 import { load, select } from 'react-cookies';
-import { GetLists,DeleteList} from "../../api/department/add";
+import {NavLink} from 'react-router-dom';
+import { GetLists, DeleteList,SetStatus} from "../../api/department/add";
 import './departmentStyle.scss'
 
 const { Search } = Input;
@@ -11,7 +12,10 @@ export default class List extends Component {
         this.state = {
             pageNumber: 1,
             pageSize: 10,
-            selectedKeys:[],
+            selectedKeys: [],
+            visible:false,
+            confirmLoading:false,
+            id:"",
             columns: [
                 {
                     title: "部门名称",
@@ -22,8 +26,9 @@ export default class List extends Component {
                     title: "禁启用",
                     dataIndex: "status",
                     key: "status",
-                    render:(status)=>{
-                     return   <Switch checkedChildren="启用" unCheckedChildren="禁用" defaultChecked={status==="1"?true:false} />
+                    render: (status,obj) => {
+                        return <Switch checkedChildren="启用"  onChange={()=>{this.setStatus(obj)}}
+                        unCheckedChildren="禁用" defaultChecked={status === "1" ? true : false} />
                     }
 
 
@@ -37,15 +42,18 @@ export default class List extends Component {
                     title: "操作",
                     dataIndex: "options",
                     key: "options",
-                    render:(options,data)=>{
+                    render: (options, data) => {
                         return (
                             <div className="departmentButton">
-                                <Button type="primary">编辑</Button>
-                                <Button onClick={()=>(this.delete(data.id))}>删除</Button>
+                                <Button type="primary">
+                                <NavLink to={{pathname:"/index/department/add",state:{obj:data}}} >编辑</NavLink>
+
+                                </Button>
+                                <Button onClick={() => (this.handleDelete(data.id))}>删除</Button>
                             </div>
                         )
                     }
-                  
+
                 }
             ],
             data: []
@@ -59,12 +67,36 @@ export default class List extends Component {
         }
         this.loadData(requestData)
     }
-    delete = (id)=>{
-        DeleteList({id}).then((rep)=>{
+    setStatus = (obj)=>{
+        console.log(obj);
+        let status = {
+            id:obj.id,
+            status:obj.status === "1"?false:true
+        }
+        SetStatus(status);
+        // console.log(status);
+
+    }
+    // componentWillUpdate(){
+    //     console.log("update");
+    //     const { pageNumber, pageSize } = this.state;
+    //     const requestData = {
+    //         pageNumber: pageNumber,
+    //         pageSize: pageSize,
+    //     }
+    //     this.loadData(requestData)
+    // }
+    delete = (id) => {
+        if(!id) return false;
+        DeleteList({ id }).then((rep) => {
             message.success("删除成功！");
-        }).catch((reason)=>{
+            this.setState({id:"",visible:false})
+            this.componentDidMount();
+
+        }).catch((reason) => {
             message.warning("删除错误！")
         })
+        this.setState({confirmLoading:false})
     }
     onSearch = (value) => {
         const { pageNumber, pageSize } = this.state;
@@ -84,23 +116,43 @@ export default class List extends Component {
                     data: result.data
                 }
             )
-        }).catch((reason)=>{
+        }).catch((reason) => {
             console.log(reason);
         })
     }
-    storeSelectedKeys = (selectedKeys) =>{
-       this.setState(
-           {selectedKeys:selectedKeys}
-       )
+    storeSelectedKeys = (selectedKeys) => {
+        this.setState(
+            { selectedKeys: selectedKeys }
+        )
     }
-    test = ()=>{
-        console.log(this.state.selectedKeys);
+    handleDelete = (id)=>{
+        this.setState({
+            visible:true,
+            id:id
+        })
+    }
+    handleOk = ()=> {
+        this.setState({
+            confirmLoading:true,
+
+        })
+        const {selectedKeys} = this.state
+        if(this.state.id) {
+            this.delete(this.state.id);
+            this.setState({id:""})
+        }
+        else {
+            this.delete(selectedKeys.join())
+        }
+        this.setState({confirmLoading:false})
+    }
+    handleCancel = ()=>{
+        this.setState({visible:false,id:""})
     }
     render() {
         const { columns, data } = this.state;
         const rowSelection = {
-            onChange:this.storeSelectedKeys,
-            onSelect:this.test
+            onChange: this.storeSelectedKeys,
         }
         return (
             <Fragment>
@@ -112,10 +164,21 @@ export default class List extends Component {
                         <Button type="primary" htmlType="submit">搜索</Button>
                     </Form.Item>
                 </Form>
-                
-                <Table className="table_department" rowKey="id" rowSelection={ rowSelection} columns={columns} dataSource={data} bordered>
+
+                <Table pagination={false} className="table_department" rowKey="id" rowSelection={rowSelection} columns={columns} dataSource={data} bordered>
 
                 </Table>
+                <Modal
+                    title="删除确认"
+                    visible={this.state.visible}
+                    onOk={this.handleOk}
+                    onCancel={this.handleCancel}
+                    confirmLoading={this.state.confirmLoading}
+                >
+                    <p>删除后无法恢复</p>
+                </Modal>
+                <Button type="primary" onClick={()=>{this.handleDelete()}}>批量删除</Button>
+                <Pagination total={100}></Pagination>
             </Fragment>
         )
     }
